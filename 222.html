@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html>
+<!--код onecompiler.com сайтында өнделіп блокнот батырмасына көшіріліп GitHub қа шығарылды. кодтын иесі: Сарқыт командасы--!>
+<head>
+<meta charset="UTF-8">
+<title>Smart Parking</title>
+<link rel="stylesheet" href="aaa.css">
+</head>
+
+<body>
+<div class="wrap">
+
+    <div>
+        <div class="park" id="park"></div>
+        <div class="box" id="box"></div>
+    </div>
+
+    <div class="tel">
+        <h3>Smart Parking</h3>
+        <div class="grid" id="tel"></div>
+        <div id="info"></div>
+    </div>
+
+</div>
+
+<script>
+
+const n = 6;
+let slots = Array(n).fill(null);
+
+
+let timeCount = Array(n).fill(0);
+let timers = Array(n).fill(null);
+
+const park = document.getElementById("park");
+const box = document.getElementById("box");
+const tel = document.getElementById("tel");
+const info = document.getElementById("info");
+
+
+for(let i=0; i<n; i++){
+    const sp = document.createElement("div");
+    sp.className = "sp";
+    sp.dataset.i = i;
+
+    sp.addEventListener("dragover", e => e.preventDefault());
+
+    sp.addEventListener("drop", e => {
+        e.preventDefault();
+
+        const carId = e.dataTransfer.getData("car");
+        const ind = sp.dataset.i;
+
+        if(slots[ind] === null){
+
+            const car = document.getElementById(carId);
+            slots[ind] = carId;
+
+            
+            const wrap = document.createElement("div");
+            wrap.style.display = "flex";
+            wrap.style.flexDirection = "column";
+            wrap.style.alignItems = "center";
+            const t = document.createElement("div");
+            t.style.fontSize = "12px";
+            t.style.marginTop = "4px";
+            t.style.color = "black";
+            t.textContent = "0 сек";
+
+            wrap.appendChild(car);
+            wrap.appendChild(t);
+            sp.appendChild(wrap);
+
+            // запускаем таймер
+            timers[ind] = setInterval(() => {
+                timeCount[ind]++;
+                t.textContent = timeCount[ind] + " сек";
+            }, 1000);
+
+            draw();
+        }
+    });
+
+    park.appendChild(sp);
+}
+
+
+for(let i=1; i<=n; i++){
+    const cr = document.createElement("div");
+    cr.className = "cr";
+    cr.id = "c"+i;
+    cr.draggable = true;
+    cr.style.backgroundImage = "url('car"+i+".png')";
+
+    cr.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("car", cr.id);
+    });
+
+    box.appendChild(cr);
+}
+
+
+box.addEventListener("dragover", e => e.preventDefault());
+
+box.addEventListener("drop", e => {
+    e.preventDefault();
+
+    const carId = e.dataTransfer.getData("car");
+    const ind = slots.indexOf(carId);
+
+    if(ind !== -1){
+        slots[ind] = null;
+
+      
+        clearInterval(timers[ind]);
+        timers[ind] = null;
+        timeCount[ind] = 0;
+    }
+
+    const car = document.getElementById(carId);
+    box.appendChild(car);
+
+    draw();
+});
+
+
+function draw(){
+    tel.innerHTML = "";
+    let free = [];
+    let busy = [];
+
+    slots.forEach((v, i) => {
+
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        if(v){
+            cell.classList.add("busy");
+            busy.push(i+1);
+        }else{
+            cell.classList.add("free");
+            free.push(i+1);
+        }
+
+        cell.textContent = i+1;
+        tel.appendChild(cell);
+    });
+
+    info.innerHTML = 
+        "Свободные: " + (free.length ? free.join(", ") : "нет") +
+        "<br>Занятые: " + (busy.length ? busy.join(", ") : "нет");
+}
+
+draw();
+
+</script>
+</body>
+</html>
